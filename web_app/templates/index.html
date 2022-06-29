@@ -1,0 +1,85 @@
+<!doctype html>
+
+<html>
+    <head>
+
+        <!-- CSS code -->
+        <style>
+        form {
+            margin: auto;
+            width: 35%;
+        }
+
+        .result {
+            margin: auto;
+            width: 35%;
+            border: 1px solid #ccc;
+        }
+        </style>
+
+        <title>NBA Prediction Model</title>
+    </head>
+
+    <body>
+
+        <!-- Use the action attribute to call the 'main' function -->
+        <form action="{{ url_for('main') }}" method="POST">
+        <fieldset>
+            <legend>Input values:</legend>
+            
+            <!-- Required attribute is used to make sure people input values -->
+            <label for="team_1">Team 1:</label>
+            <select name="team1_name" id="team_1">
+                <option value="none" selected disabled hidden>Select a Team</option>
+                {%for team_name, team_id in team_id_dict.items()%}
+                    <option value="{{team_name}}">{{team_name}}</option>
+                {%endfor%}
+            </select>
+            <br>
+            <br> 
+            <label for="team_2">Team 2:</label> 
+            <select name="team2_name" id="team_2">
+                <option value="none" selected disabled hidden>Select a Team</option>
+                {%for team_name, team_id in team_id_dict.items()%}
+                    <option value="{{team_name}}">{{team_name}}</option>
+                {%endfor%}
+            </select>
+            <br>
+            <br> 
+            <label for="is_home">Is team 1 home team?</label> 
+           <select name="teamhome_name" id="is_home" > 
+                <option value="none" selected disabled hidden>Select an Option</option>
+                <option value=True>Yes</option>
+                <option value=False>No</option>
+            </select>
+            <br>
+            <br>
+            <input type="submit">
+        </fieldset>
+        </form>
+
+        <br>
+
+        <div class="result" align="center">
+            
+            <!-- Our 'result' is false until a prediction has been made -->
+            {% if result is defined%}
+
+                <!-- Loop through dictionary and print key:value pair -->
+                {% for variable in original_input %}
+                    <b>{{ variable }}:</b> {{ original_input[variable] }}
+                {% endfor %}
+                <br>
+                <!-- Print prediction -->
+                <br> Predicted winner of the match:
+                <p style="font-size:50px">{{ result[0] }}</p>
+                <!-- Print winning probability -->
+                <br> Winning probability:
+                <p style="font-size:50px">{{ result[1] }} % </p>
+            
+            {% endif %}
+        </div>
+
+    </body>
+
+</html>
