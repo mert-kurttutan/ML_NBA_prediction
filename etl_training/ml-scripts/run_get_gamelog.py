@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import os
 import sys
+import argparse
+
 import json
 import requests
 import pandas as pd
@@ -8,10 +10,6 @@ import numpy as np
 
 from pathlib import Path
 
-directory = Path(__file__).absolute()
-  
-# setting path
-sys.path.append(str(directory.parent.parent))
 
 # Local modules
 import nba_ml_module.utils as utils
@@ -21,7 +19,7 @@ import nba_ml_module.etl as etl
 
 REGULAR_SEASON_LABEL = "Regular Season"
 PLAYOFFS_LABEL = "Playoffs"
-ROOT_DATA_DIR = "."
+ROOT_DATA_DIR = "data"
 GAMELOG_DIR = "gamelog_data"
 
 BUCKET_RAW = "mert-kurttutan-nba-ml-project-raw-data"
@@ -29,13 +27,91 @@ BUCKET_CONFIG = "mertkurttutan-nba-ml-project-config"
 
 DATA_CONFIG_FILE = "data_config.json"
 
-def run_extract_gamelog(season: str, seasonType_arr: list, proxy_config: dict):
+
+# Make sure parent directories exists
+Path(f'{ROOT_DATA_DIR}/{GAMELOG_DIR}/').mkdir(parents=True, exist_ok=True)
+
+
+def year_to_label(year: list):
+
+  return f"{year}-{str(year+1)[-2:]}", f"{year}-{str(year+1)}"
+
+def extract_data_from_s3(year_arr=None):
+  global LABEL_ARR
+  LABEL_ARR = None
+
+  LABEL_ARR = [year_to_label(year) for year in year_arr]
+  
+  # Copy config file from s3 bucket
+  os.system(f"aws s3 cp s3://{BUCKET_CONFIG}/{DATA_CONFIG_FILE} {ROOT_DATA_DIR}/{DATA_CONFIG_FILE} >> ~/entrypoint_log.log ")
+
+
+
+def define_config_vars():
+  print("Defining config vars...")
+  global CONFIG_DICT
+  global YEAR_ARR
+
+
+  with open(f"{ROOT_DATA_DIR}/{DATA_CONFIG_FILE}", "r") as read_content:
+    CONFIG_DICT = json.load(read_content)
+
+
+  # Create season from data_config
+  
+  if LABEL_ARR is None: 
+    YEAR_ARR = sorted(set([elem[:-4] for elem in list(CONFIG_DICT["season_dates"].keys())]))
+  
+  else:
+    LABEL_ARR_0 = [label[0] for label in LABEL_ARR]
+    YEAR_ARR = sorted(set([elem[:-4] for elem in list(CONFIG_DICT["season_dates"].keys()) if elem[:-4] in LABEL_ARR_0]))
+
+
+  print("Defining important dataframes...")
+
+
+
+def update_config(CONFIG_DICT: dict, is_upload: bool):
+
+  for file in os.listdir(f"{ROOT_DATA_DIR}/{GAMELOG_DIR}"):
+    if not "csv" in file:
+        continue
+
+    # name variables
+    year_label = utils.get_year_label(file)
+    seasonType = utils.get_season_type(file)
+    season_label = f"{year_label}_{seasonType[:3]}"
+    gamelog_file_name = f"{ROOT_DATA_DIR}/{GAMELOG_DIR}/{file}"
+    
+    # Extract data
+    # Use converter to preserve leading zeros in GAME_ID column
+    # If leading zeros are not preserved, parameters will be in invalid format
+    df = pd.read_csv(gamelog_file_name, converters={'GAME_ID': lambda x: str(x)})
+        
+    # Store season dates into config file
+    CONFIG_DICT["season_dates"][season_label] = (df["GAME_DATE"].min(), df["GAME_DATE"].max())
+      
+    # Store game ids, turn it into list since it is JSON-serializable
+    CONFIG_DICT["season_game_ids"][season_label] = np.array(df["GAME_ID"].unique()).tolist()
+
+
+  with open(f"{ROOT_DATA_DIR}/{DATA_CONFIG_FILE}", "w") as outfile:
+    json.dump(CONFIG_DICT, outfile)
+
+
+  if is_upload:
+    os.system(f"aws s3 cp {ROOT_DATA_DIR}/{DATA_CONFIG_FILE} s3://{BUCKET_CONFIG}/{DATA_CONFIG_FILE} ")
+
+
+def run_extract_gamelog(season: str, seasonType_arr: list, proxy_config: dict = {}):
   """Extracst player data from for one season and type of season
     Stores the data into player_stat_data directory"""
 
+  proxy_config= {}
+
 
   for seasonType in seasonType_arr:
-    df_file_name = f'{ROOT_DATA_DIR}/{GAMELOG_DIR}gamelog_season{season}_seasonType{seasonType[:3]}.csv'
+    df_file_name = f'{ROOT_DATA_DIR}/{GAMELOG_DIR}/gamelog_season{season}_seasonType{seasonType[:3]}.csv'
       
     # Query data only if it does not exist
     if not os.path.exists(df_file_name):
@@ -119,47 +195,28 @@ def run_extract_gamelog_data_entire_year(season: str,  config_dict: dict):
 
 if __name__ == "__main__":
 
-  os.system(f"aws s3 cp s3://{BUCKET_CONFIG}/{DATA_CONFIG_FILE} ./{DATA_CONFIG_FILE}")
-    
-  with open(f"./{DATA_CONFIG_FILE}", "r") as read_content:
-    config_dict = json.load(read_content)
-    
-  config_dict["season_dates"] = {}
-  config_dict["season_game_ids"] = {}
+  parser = argparse.ArgumentParser(description='Arguments for mlflow python script')
+  parser.add_argument("--year-arr", nargs="+", default=["2014"], help="List of years to process data of ")
+  #parser.add_argument('--is-upload', action='store_true')
+  value = parser.parse_args()
 
-  for year in range(2007, 2022):
-    
+  year_arr = [int(year) for year in value.year_arr]
+
+
+  extract_data_from_s3(year_arr=year_arr)
+
+  define_config_vars()
+
+  
+  for year in year_arr:
+      
     season = utils.get_season_str(year)
-    run_extract_gamelog_data_entire_year(season, config_dict)
-    
-    
-  for file in os.listdir(f"{ROOT_DATA_DIR}/{GAMELOG_DIR}"):
-    if not "csv" in file:
-        continue
-    print(file)
-    # name variables
-    year_label = utils.get_year_label(file)
-    seasonType = utils.get_season_type(file)
-    season_label = f"{year_label}_{seasonType[:3]}"
-    gamelog_file_name = f"{ROOT_DATA_DIR}/{GAMELOG_DIR}/{file}"
-    
-    # Extract data
-    # Use converter to preserve leading zeros in GAME_ID column
-    # If leading zeros are not preserved, parameters will be in invalid format
-    df = pd.read_csv(gamelog_file_name, converters={'GAME_ID': lambda x: str(x)})
-        
-    # Store season dates into config file
-    config_dict["season_dates"][season_label] = (df["GAME_DATE"].min(), df["GAME_DATE"].max())
-        
-    # Store game ids, turn it into list since it is JSON-serializable
-    config_dict["season_game_ids"][season_label] = np.array(df["GAME_ID"].unique()).tolist()
-    
-    
-  with open(f"./{DATA_CONFIG_FILE}", "w") as outfile:
-    json.dump(config_dict, outfile)
-    
-    
-  os.system(f"aws s3 cp ./{DATA_CONFIG_FILE} s3://{BUCKET_CONFIG}/{DATA_CONFIG_FILE} ")
+    run_extract_gamelog_data_entire_year(season, CONFIG_DICT)
+      
+      
+  update_config(CONFIG_DICT=CONFIG_DICT, is_upload=True)
+
+
     
   # Upload directory to s3 bucket
   # Exclude jupyter checkpoint files
@@ -167,4 +224,4 @@ if __name__ == "__main__":
     
   # After uploading this directory, delete it
   # Since its presence is not needed anymore
-  os.system(f"rm -rf {ROOT_DATA_DIR}/{GAMELOG_DIR}")
+  os.system(f"rm -rf {ROOT_DATA_DIR}")
