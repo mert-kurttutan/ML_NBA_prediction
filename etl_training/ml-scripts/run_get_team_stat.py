@@ -15,8 +15,8 @@ sys.path.append(str(directory.parent.parent))
 
 
 # Local modules
-import nba_ml_package.utils as utils
-import nba_ml_package.etl as etl
+import nba_ml_module.utils as utils
+import nba_ml_module.etl as etl
 
 
 REGULAR_SEASON_LABEL = "Regular Season"
