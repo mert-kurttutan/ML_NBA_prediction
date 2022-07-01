@@ -107,7 +107,6 @@ def run_extract_gamelog(season: str, seasonType_arr: list, proxy_config: dict = 
   """Extracst player data from for one season and type of season
     Stores the data into player_stat_data directory"""
 
-  proxy_config= {}
 
 
   for seasonType in seasonType_arr:

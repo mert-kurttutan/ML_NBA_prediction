@@ -76,7 +76,7 @@ def run_extract_game_rotation(gameId: str, proxy_config: dict, season_label: str
     Stores the data into player_stat_data directory"""
 
   df_file_name = f'{ROOT_DATA_DIR}/{GAME_ROTATION_DIR}/{season_label}/game_rotation_gameId{gameId}.csv'
-  proxy_config = {}
+
   # Query data only if it does not exist
   if not os.path.exists(df_file_name):
     df_arr = etl.jsonToDataFrame(etl.getRawGameRotation(gameId=gameId, proxy_config=proxy_config))
