@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Creating DynamoDB tables with CloudFormation
+
+Parameters:
+
+######### Gamelog table
+  GamelogTableName:
+    Description: "Enter a name for gamelog Dynamodb"
+    Type: String
+    Default: "gamelog-table-vtrial"
+
+  GamelogKeyAttributeName:
+    Description: "Enter the name for key attribute"
+    Type: String
+    Default: GAME_ID
+
+  GamelogKeyAttributeType:
+    Description: "Enter the name for key attribute"
+    Type: String
+    Default: N
+
+
+###### Team Stat table
+
+  TeamStatTableName:
+    Description: "Enter a name for teamstat Dynamodb"
+    Type: String
+    Default: "team-stat-table-vtrial"
+
+  TeamStatKeyAttributeName:
+    Description: "Enter the name for key attribute for team stat"
+    Type: String
+    Default: TEAM_ID
+
+
+  TeamStatKeyAttributeType:
+    Description: "Enter the name for key attribute for team stat"
+    Type: String
+    Default: N
+
+
+  TeamStatKeyAttributeName2:
+    Description: "Enter the name for key attribute for team stat"
+    Type: String
+    Default: GAME_DATE
+
+
+  TeamStatKeyAttributeType2:
+    Description: "Enter the name for key attribute for team stat"
+    Type: String
+    Default: S
+
+Resources:
+  GamelogTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: !Ref 'GamelogTableName'
+      KeySchema:
+        - AttributeName: !Ref GamelogKeyAttributeName
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: !Ref GamelogKeyAttributeName
+          AttributeType: !Ref GamelogKeyAttributeType
+      
+      BillingMode: PAY_PER_REQUEST
+
+  TeamStatTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      TableName: !Ref 'TeamStatTableName'
+      KeySchema:
+        - AttributeName: !Ref TeamStatKeyAttributeName
+          KeyType: HASH
+        - AttributeName: !Ref TeamStatKeyAttributeName2
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: !Ref TeamStatKeyAttributeName
+          AttributeType: !Ref TeamStatKeyAttributeType
+
+        - AttributeName: !Ref TeamStatKeyAttributeName2
+          AttributeType: !Ref TeamStatKeyAttributeType2
+      
+      BillingMode: PAY_PER_REQUEST

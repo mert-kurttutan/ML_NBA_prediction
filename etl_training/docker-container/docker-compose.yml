@@ -1,0 +1,18 @@
+version: '3.7'
+
+services:
+  ml-node:
+    image: 373281353035.dkr.ecr.us-east-1.amazonaws.com/nba-mlflow-dag:latest
+    container_name: ml-flow-container
+    env_file:
+      - cfg.env
+    # set_PYTHONPATH 
+    # run ml script
+    command: ["bash", "-c", "source /entrypoint.sh && set_python_env && set_aws_config && get_ml_script
+                && python $${MLFLOW_HOME}/ml-scripts/main.py --year-arr $${YEAR_ARR}"]
+
+
+
+    
+
+

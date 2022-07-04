@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+
+# special file extension to store temporary data
+.garbage
+
 # C extensions
 *.so
 

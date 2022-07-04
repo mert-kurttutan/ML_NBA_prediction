@@ -1,0 +1,17 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  AWS ECS cluster definition in which to run nba-ml-dags
+
+Parameters:
+  ClusterName:
+    Description: "Enter a name for ECS cluster"
+    Type: String
+
+
+Resources:
+  SimpleCluster:
+    Type: 'AWS::ECS::Cluster'
+    Properties:
+      ClusterName: !Ref 'ClusterName'
+      CapacityProviders:
+        - FARGATE

@@ -26,7 +26,7 @@ PLAYER_STAT_DIR = "player_stat_data"
 
 BUCKET_TRANSFORMED_v1 = "mert-kurttutan-nba-ml-project-transformed-data-v1"
 BUCKET_TRANSFORMED_v2 = "mert-kurttutan-nba-ml-project-transformed-data-v2"
-BUCKET_CONFIG = "mertkurttutan-nba-ml-project-config"
+BUCKET_CONFIG = "mert-kurttutan-nba-ml-files/config"
 
 DATA_CONFIG_FILE = "data_config.json"
 
@@ -236,10 +236,16 @@ def transform_player_stat(is_upload: bool = True, save_array: bool = False):
     
 if __name__ == '__main__':
 
+  year_today = 2013
+
   parser = argparse.ArgumentParser(description='Arguments for mlflow python script')
-  parser.add_argument("--yearArr", nargs="+", default=["2014"], help="List of years to process data of ")
+  parser.add_argument("--year-arr", nargs="+", default=["2014"], help="List of years to process data of ")
   value = parser.parse_args()
-  year_arr = [int(year) for year in value.yearArr]
+  year_arr = [int(year) for year in value.year_arr]
+
+  if year_arr == [-1]:
+    print("Current mode is chosen....")
+    year_arr = [year_today]
 
   print(f"Chosen year_arr: {year_arr}")
   print("Running transform-v2 script...")

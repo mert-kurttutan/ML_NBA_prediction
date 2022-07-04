@@ -21,7 +21,7 @@ ROOT_DATA_DIR = "data"
 GAME_ROTATION_DIR = "game_rotation_data"
 
 BUCKET_RAW = "mert-kurttutan-nba-ml-project-raw-data"
-BUCKET_CONFIG = "mertkurttutan-nba-ml-project-config"
+BUCKET_CONFIG = "mert-kurttutan-nba-ml-files/config"
 
 DATA_CONFIG_FILE = "data_config.json"
 
@@ -131,6 +131,8 @@ def run_extract_game_rotation_array(game_id_arr: list, config_dict: dict, season
 
 
 if __name__ == "__main__":
+
+  year_today = 2013
     
   parser = argparse.ArgumentParser(description='Arguments for mlflow python script')
   parser.add_argument("--year-arr", nargs="+", default=["2014"], help="List of years to process data of ")
@@ -138,7 +140,9 @@ if __name__ == "__main__":
 
   year_arr = [int(year) for year in value.year_arr]
 
-
+  if year_arr == [-1]:
+    print("Current mode is chosen...")
+    year_arr = [year_today]
   extract_data_from_s3(year_arr=year_arr)
 
   define_config_vars()

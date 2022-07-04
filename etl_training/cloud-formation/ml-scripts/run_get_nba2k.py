@@ -17,7 +17,7 @@ ROOT_DATA_DIR = "."
 NBA2K_DIR = "nba2k_data"
 
 BUCKET_RAW = "mert-kurttutan-nba-ml-project-raw-data"
-BUCKET_CONFIG = "mertkurttutan-nba-ml-project-config"
+BUCKET_CONFIG = "mert-kurttutan-nba-ml-files/config"
 
 DATA_CONFIG_FILE = "data_config.json"
 

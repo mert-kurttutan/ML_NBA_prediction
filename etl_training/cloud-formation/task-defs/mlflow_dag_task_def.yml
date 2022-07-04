@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  Task definition to run mlflow dag for nba-ml-project
+
+Parameters:
+  MlFlowDagImage:
+    Description: "Registry path for the app for ML Flow Dag"
+    Type: String
+    Default: '373281353035.dkr.ecr.us-east-1.amazonaws.com/nba-mlflow-dag:latest'
+
+  TaskExecutionRole:
+    Description: "Arn for task execution role to be used by task"
+    Type: String
+    Default: 'arn:aws:iam::373281353035:role/ecsTaskExecutionRole'
+
+  FamilyName:
+    Description: "Family name for task definition"
+    Type: String
+    Default: 'nba_mlflow_vtrial'
+
+  CPUInstance:
+    Description: "vCPU size for task compute instance"
+    Type: String
+    Default: '2 vCPU'
+
+
+  MemoryInstance:
+    Description: "Memory size for task compute instance"
+    Type: String
+    Default: '8 GB'
+
+
+Resources:
+  ECSTaskDefinition:
+    Type: 'AWS::ECS::TaskDefinition'
+    Properties:
+      ContainerDefinitions:
+        - LogConfiguration:
+            Options:
+              awslogs-group: /ecs/nba_mlflow_v1
+              awslogs-region: us-east-1
+              awslogs-stream-prefix: ecs
+              awslogs-create-group: 'true'
+            LogDriver: awslogs
+          Name: nba-mlflow-container
+          Image: !Ref 'MlFlowDagImage' 
+          Essential: true
+          PortMappings:
+            - ContainerPort: 80
+              Protocol: tcp
+      Family: !Ref 'FamilyName'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      TaskRoleArn: !Ref 'TaskExecutionRole'
+      Cpu: !Ref 'CPUInstance'
+      Memory: !Ref 'MemoryInstance'
+      RuntimePlatform:
+        CpuArchitecture: X86_64
+        OperatingSystemFamily: LINUX
+      ExecutionRoleArn: !Ref 'TaskExecutionRole'
+      Tags:
+        - Key: 'ecs:taskDefinition:createdFrom'
+          Value: ecs-console-v2
+        - Key: 'ecs:taskDefinition:stackId'
+          Value: !Ref 'AWS::StackId'
+Outputs:
+  TaskDefinitionARN:
+    Description: The created task definition ARN.
+    Value: !Ref ECSTaskDefinition

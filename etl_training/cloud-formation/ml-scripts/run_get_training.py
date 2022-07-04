@@ -30,7 +30,7 @@ TRAINING_DIR = "training_data"
 BUCKET_TRANSFORMED_v1 = "mert-kurttutan-nba-ml-project-transformed-data-v1"
 BUCKET_TRANSFORMED_v2 = "mert-kurttutan-nba-ml-project-transformed-data-v2"
 BUCKET_TRAINING = "mert-kurttutan-nba-ml-project-training"
-BUCKET_CONFIG = "mertkurttutan-nba-ml-project-config"
+BUCKET_CONFIG = "mert-kurttutan-nba-ml-files/config"
 
 DATA_CONFIG_FILE = "data_config.json"
 
@@ -210,11 +210,16 @@ def get_team_player_stat_training(is_upload: bool = True, save_array: bool = Fal
 
 if __name__ == '__main__':
 
+  year_today = 2013
 
   parser = argparse.ArgumentParser(description='Arguments for mlflow python script')
-  parser.add_argument("--yearArr", nargs="+", default=["2014"], help="List of years to process data of ")
+  parser.add_argument("--year-arr", nargs="+", default=["2014"], help="List of years to process data of ")
   value = parser.parse_args()
-  year_arr = [int(year) for year in value.yearArr]
+  year_arr = [int(year) for year in value.year_arr]
+
+  if year_arr == [-1]:
+    print("Current mode is chosen....")
+    year_arr = [year_today]
 
   print(f"Chosen year_arr: {year_arr}")
 
@@ -222,7 +227,6 @@ if __name__ == '__main__':
 
   define_config_vars()
   
-  #get_team_stat_training
   
   get_team_player_stat_training()
 
