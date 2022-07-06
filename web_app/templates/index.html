@@ -5,15 +5,40 @@
 
         <!-- CSS code -->
         <style>
+        .input {
+            margin: auto;
+            
+            border: 2px solid rgb(96, 159, 241);
+            border-style: dotted
+        }
         form {
             margin: auto;
             width: 35%;
         }
 
+        .paragraph_font {
+            color: rgb(20, 5, 224);
+        }
+
+        .legend_font {
+            color: rgb(10, 3, 107);
+        }
+
+        .bold_class {
+            color: rgb(20, 5, 224);
+        }
+
         .result {
             margin: auto;
             width: 35%;
-            border: 1px solid #ccc;
+            border: 2px solid rgb(96, 159, 241);
+            border-style: dotted
+        }
+        .chart {
+            margin: auto;
+            width: 35%;
+            border: 2px solid rgb(96, 159, 241);
+            border-style: dotted
         }
         </style>
 
@@ -24,8 +49,8 @@
 
         <!-- Use the action attribute to call the 'main' function -->
         <form action="{{ url_for('main') }}" method="POST">
-        <fieldset>
-            <legend>Input values:</legend>
+        <fieldset class="input">
+            <legend class="legend_font">Input values:</legend>
             
             <!-- Required attribute is used to make sure people input values -->
             <label for="team_1">Team 1:</label>
@@ -60,25 +85,33 @@
 
         <br>
 
-        <div class="result" align="center">
+        {% if result is defined%}
             
-            <!-- Our 'result' is false until a prediction has been made -->
-            {% if result is defined%}
 
+            <div class="result" align="center">
                 <!-- Loop through dictionary and print key:value pair -->
                 {% for variable in original_input %}
-                    <b>{{ variable }}:</b> {{ original_input[variable] }}
+                    <b class="bold_class">{{ variable }}:</b> {{ original_input[variable] }}
                 {% endfor %}
                 <br>
+
                 <!-- Print prediction -->
-                <br> Predicted winner of the match:
-                <p style="font-size:50px">{{ result[0] }}</p>
-                <!-- Print winning probability -->
-                <br> Winning probability:
-                <p style="font-size:50px">{{ result[1] }} % </p>
-            
-            {% endif %}
-        </div>
+                <br> Winner team :
+                <p style="font-size:50px" class="paragraph_font">{{ result }}</p>
+
+            </div>
+
+            <br>
+
+            <div id='chart' class='chart' align="center"></div>
+            <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+            <script type='text/javascript'>
+                var graphs = {{graphJSON | safe}};
+                Plotly.plot('chart',graphs,{});
+            </script>
+
+        {% endif %}
+        
 
     </body>
 

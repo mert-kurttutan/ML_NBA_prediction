@@ -145,7 +145,7 @@ if __name__ == "__main__":
   total_df_gamelog_stat = utils.float_to_decimal_df(total_df_gamelog_stat[selected_cols])
 
   nba_gamelog_table_name = "gamelog-table-vtrial"
-  wr.dynamodb.put_df(df=total_df_gamelog_stat, table_name=nba_gamelog_table_name, boto3_session=boto3_ses)
+  wr.dynamodb.put_df(df=total_df_gamelog_stat, table_name=nba_gamelog_table_name)#, boto3_session=boto3_ses)
 
 
 
